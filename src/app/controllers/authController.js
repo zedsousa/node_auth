@@ -8,9 +8,10 @@ const User = require('../models/user');
 
 const router = express.Router();
 
+
 function generateToken(params = {}){
     return jwt.sign(params, authConfig.secret, {
-    expiresIn: 604800,
+    expiresIn: 600,
 });
 }
 router.post('/register', async (req, res) => {
@@ -53,6 +54,8 @@ router.post('/authenticate', async (req, res) => {
         token: generateToken({ id: user.id }) 
     });    
 });
+
+
 
 
 module.exports = app => app.use('/auth', router);

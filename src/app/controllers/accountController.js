@@ -1,5 +1,6 @@
 const express = require('express');
 const authMiddleware = require('../middlewares/auth')
+const bcrypt = require('bcryptjs');
 
 const User = require('../models/user');
 
@@ -7,40 +8,20 @@ const router = express.Router();
 
 router.use(authMiddleware);
 
-router.get('/', async (req, res) => {
-    try{
-        const users = await User.find();
+router.get('/:id', async (req, res) => {
+    
+    const user = await User.findById(req.params.id);
 
-        return res.send({ users });
+    if(!user)
+        return res.status(400).send({ error: 'User not found'}); 
 
+    user.email = undefined;
+    user.password = undefined;
+    user.createdAt = undefined;
+    
 
-    } catch (err) {
-        return res.status(400).send({ error: 'Error loading users'})
-    }
+    res.send({ 
+        user 
+    });    
 });
-
-router.get('/:userId', async (req, res) => {
-    try{
-        const user = await User.findById(req.params.userId);
-
-        return res.send({ user });
-
-
-    } catch (err) {
-        return res.status(400).send({ error: 'Error loading user'})
-    }
-});
-
-router.get('/myInfo', async (req, res) => {
-    try{
-        const user = await User.findById(req.params.userId);
-
-        return res.send({ user });
-
-
-    } catch (err) {
-        return res.status(400).send({ error: 'Error loading user'})
-    }
-});
-
 module.exports = app => app.use('/users', router);
