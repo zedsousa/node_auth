@@ -8,29 +8,11 @@ const authConfig = require('../config/auth')
 
 function generateToken(params = {}){
     return jwt.sign(params, authConfig.secret, {
-    expiresIn: 600,
+    expiresIn: 315360000,
 });
 }
 
-router.post('/', async (req, res) => {
-    const { email } = req.body
 
-
-    try {
-        if (await User.findOne({ email }))
-            return res.status(400).send({ error: 'User already exists' })
-
-        const user = await User.create(req.body);
-
-        user.password = undefined;
-
-        return res.send({ 
-            user, 
-        });
-    } catch (err){
-        return res.status(400).send({ error: 'Registration failed'});
-    }
-})
 
 router.post('/authenticate', async (req, res) => {
     const { email, password } = req.body;
@@ -86,6 +68,34 @@ router.patch('/authenticated/start_session', async (req, res) => {
         return res.status(500).send({ error: error });
     }    
 }) 
+
+router.post('/authenticated/register', async (req, res) => {
+    const { email } = req.body
+
+
+    try {
+        if (await User.findOne({ email }))
+            return res.status(400).send({ error: 'User already exists' })
+
+        const authHeader = req.headers.authorization;
+        const parts = authHeader.split(' ');
+        const [ scheme, token ] = parts;
+
+        admin = await User.findOne({ token })
+
+        if (!(admin.name === 'zedsousa'))
+            return res.status(401).send({ error: 'You are not allowed to create users'}); 
+
+        const user = await User.create(req.body);
+        user.password = undefined;
+
+        return res.send({ 
+            user, 
+        });
+    } catch (err){
+        return res.status(400).send({ error: 'Registration failed'});
+    }
+})
 
 router.post('/authenticated/get_info', async (req, res) => {
     const { email, password } = req.body;
